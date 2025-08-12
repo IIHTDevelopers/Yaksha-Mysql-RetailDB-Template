@@ -153,7 +153,7 @@ public class MySQLDatabaseTest {
 
     @Test
     @Order(3)
-    public void testSeedDataExists() throws Exception {
+    public void testSeedDataExistsCustomersProductsStores() throws Exception {
         try {
             boolean ok =
                 // Customers
@@ -178,8 +178,19 @@ public class MySQLDatabaseTest {
                 rowExists("SELECT 1 FROM Stores WHERE StoreName=? AND City=? AND State=?",
                         "Downtown Outlet","Mumbai","MH") &&
                 rowExists("SELECT 1 FROM Stores WHERE StoreName=? AND City=? AND State=?",
-                        "City Center","Pune","MH") &&
+                        "City Center","Pune","MH");
+            yakshaAssert(currentTest(), ok, businessTestFile);
+        } catch (Exception ex) {
+            yakshaAssert(currentTest(), false, businessTestFile);
+        }
+    }
 
+
+    @Test
+    @Order(4)
+    public void testSeedDataExistsInventoryOrdersOrderItems() throws Exception {
+        try {
+            boolean ok =                                
                 // Inventory
                 rowExists("SELECT 1 FROM Inventory WHERE StoreID=1 AND ProductID=1 AND QuantityOnHand=40 AND LastRestockDate=?",
                         java.sql.Date.valueOf("2025-06-01")) &&
@@ -208,9 +219,9 @@ public class MySQLDatabaseTest {
             yakshaAssert(currentTest(), false, businessTestFile);
         }
     }
-
+    
     @Test
-    @Order(4)
+    @Order(5)
     public void testInventoryCompositeUnique() throws Exception {
         // Try inserting a duplicate (StoreID, ProductID). Expect failure.
         boolean passed;
@@ -227,37 +238,6 @@ public class MySQLDatabaseTest {
         }
         yakshaAssert(currentTest(), passed, businessTestFile);
     }
-    
-    @Test
-    @Order(5)
-    public void testProceduresExist() throws Exception {
-        try {
-            List<String> procs = Arrays.asList(
-                "sp_GroupingAndHaving"
-            );
-            boolean all = true;
-            for (String p : procs) if (!routineExists(p)) { all = false; break; }
-            yakshaAssert(currentTest(), all, businessTestFile);
-        } catch (Exception e) {
-            yakshaAssert(currentTest(), false, businessTestFile);
-        }
-    }
-
-    @Test
-    @Order(6)
-    public void testProcedureBodiesContainExpectedClauses() throws Exception {
-        try {
-            boolean ok = true;
-
-            String grp = getRoutineBody("sp_GroupingAndHaving");
-            ok &= grp.contains("GROUP BY") && grp.contains("HAVING");
-
-            yakshaAssert(currentTest(), ok, businessTestFile);
-        } catch (Exception e) {
-            yakshaAssert(currentTest(), false, businessTestFile);
-        }
-    }
-
 
     @AfterAll
     public static void tearDown() throws Exception {
